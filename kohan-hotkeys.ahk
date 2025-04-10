@@ -1,5 +1,7 @@
 ﻿#HotIf WinActive("ahk_class Kohan")
 
+; all coordinates are for the default 1024x768 resolution and are scaled using ConverCoords()
+
 ; Kohan needs a small amount of delay between keystrokes to keep from getting overwhelmed
 SetKeyDelay 1, 0
 
@@ -203,8 +205,8 @@ XButton2::Delete
 		} else {
 			Send( "o" )
 		}
-		Send( "{LButton}" )
-		if( FindColor( 502, 371, 0x424152 ) ){ ; if structure confirmation dialog opened (ie valid location)
+		Send( "{LButton}" ) ; click build cursor onto map
+		if( FindColor( 554, 370, 0x424152 ) ){ ; if structure confirmation dialog opened (ie valid location)
 			Send( "{Enter}b" )
 			if( isSettler ){ ; always press settlers
 				Send( "q" )
