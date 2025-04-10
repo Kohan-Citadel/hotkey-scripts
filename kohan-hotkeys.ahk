@@ -215,11 +215,11 @@ XButton2::Delete ; should be optional or mentioned somewhere
 		if( FindColor( 448, 640, 0x211431 ) ){ ; if background color (ie no button and therefore settler)
 			Send( "s" )
 			isSettler := true
-		} else {
+		} else { ; therefore engineer
 			Send( "o" )
 		}
 		Send( "{LButton}" ) ; click build cursor onto map
-		Sleep 55 ; safety delay so the company isn't stuck into confirmation dialog
+		Sleep(50) ; delay to allow the dialog to open
 		if( FindColor( 554, 370, 0x424152 ) ){ ; if structure confirmation dialog opened (ie valid location)
 			Send( "{Enter}b" )
 			if( isSettler ){ ; always press settlers
@@ -308,10 +308,8 @@ Send( "^c" )
 {
 	MouseMove( ConvertCoords( 239, 594 )* )
 	Send( "{Lbutton}" )
-	sleep 5 ; delay needed to work proprely
-	MouseMove( ConvertCoords( 500, 300 )* )
-
-	sleep 100
+	Sleep 5
+	Recenter()
 }
 
 
