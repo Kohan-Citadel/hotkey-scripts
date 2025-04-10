@@ -1,5 +1,8 @@
 ﻿#HotIf WinActive("ahk_class Kohan")
 
+; Kohan needs a small amount of delay between keystrokes to keep from getting overwhelmed
+SetKeyDelay 1, 0
+
 ; calibrates the script for the current screen resolution
 Calibrate(){
 	WinGetClientPos(,, &W, &H,)
@@ -55,6 +58,12 @@ SelectSettlement( index ){
 	Sleep 3
 	Send( "{F1}" )
 	Recenter()
+}
+
+; Pastes the given symbol and message into the chat
+PingChat( symbol, message ){
+	; SendEvent used to slightly delay each keystroke
+	SendEvent( "{enter}" symbol message symbol "{enter}")
 }
 
 ~c::Calibrate()
@@ -249,95 +258,21 @@ Send( "^p" )
 Send( "^c" )
 }
 
-; multi command     ████████████████████████████████████████████████████████████████████████████████████
+; multiplayer chat commands ▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚
 
-!q:: ; resources report /r
-{
-Send( "{enter}" )
-Send( "/r" )
-Sleep 3
-Send( "{enter}" )
-sleep 100
-}
+!q::SendEvent( "{Enter}/r{Enter}" ) ; resources report /r
 
+!e::PingChat( "^m", "Danger" ) ; ping danger
 
-!e:: ; ping danger
-{
-Send( "{enter}" )
-Send( "^m" )
-Sleep 3
-Send( "Danger" )
-Sleep 3
-Send( "^m" )
-Sleep 3
-Send( "{enter}" )
-sleep 100
-}
+!r::PingChat( "^e", "Lair" ) ; ping lair
 
-!r:: ; ping lair
-{
-Send( "{enter}" )
-Send( "^e" )
-Sleep 3
-Send( "Lair" )
-Sleep 3
-Send( "^e" )
-Sleep 3
-Send( "{enter}" )
-sleep 100
-}
+!a::PingChat( "^a", "Attack" ) ; ping Attack
 
-!a:: ; ping Attack
-{
-Send( "{enter}" )
-Send( "^a" )
-Sleep 3
-Send( "Attack" )
-Sleep 3
-Send( "^a" )
-Sleep 3
-Send( "{enter}" )
-sleep 100
-}
+!s::PingChat( "^e", "Spy" ) ; ping Spy
 
-!s:: ; ping Spy
-{
-Send( "{enter}" )
-Send( "^e" )
-Sleep 3
-Send( "Spy" )
-Sleep 3
-Send( "^e" )
-Sleep 3
-Send( "{enter}" )
-sleep 100
-}
+!d::PingChat( "^c", "Indies" ) ; ping indie
 
-!d:: ; ping indie
-{
-Send( "{enter}" )
-Send( "^c" )
-Sleep 3
-Send( "Indies" )
-Sleep 3
-Send( "^c" )
-Sleep 3
-Send( "{enter}" )
-sleep 100
-}
-
-!f:: ; def here
-{
-Send( "{enter}" )
-Send( "^d" )
-Sleep 3
-Send( "Defend" )
-Sleep 3
-Send( "^d" )
-Sleep 3
-Send( "{enter}" )
-sleep 100
-}
+!f::PingChat( "^d", "Defend") ; def here
 
 !w:: ; last event
 {
