@@ -27,6 +27,17 @@ Recenter(){
 	MouseMove( ConvertCoords( 500, 300 )* )
 }
 
+; list of commonly used colors:
+global c_textBoxBackground := 0x424152 ; background color of chat, name settlement dialogs, etc
+global c_recruitmentButton := 0x6365AD ; sampled from (338, 726)
+global c_objAttrBackground := 0x211431 ; solid background color behind company or structure stat values
+global c_companyBuildButton := 0x946531 ; sampled from (515, 637)
+global c_companyMenuButton := 0xBD8A00 ; sampled from (515, 637), this is the "back" button from the build menu
+global c_libraryComponent := 0x2961b5 ; sampled from (55, 368), this is the blue of the book cover
+global c_componentSlotEmpty := 0x101429 ; background color of empty component slot
+global c_sellComponentButton := 0xF7BE5A ; sampled from (456, 729), this is top-left side of the bag of gold
+global c_awakenKohanButton := 0xCE7D29 ; sampled from (407, 415), this is the top-left corner of "awaken kohan" button
+
 FindColor(x, y, color){ ; function to find a specific pixel color and compare with an input color to return true or false 
     coords := ConvertCoords( x, y )
 	x1 := coords[1] - 2
@@ -70,12 +81,13 @@ PingChat( symbol, message ){
 
 ~c::Calibrate()
 
-AwakeKohanAmulet() { ; 
-if (FindColor( 406, 426, 0xB57531 ) ){ ; Detect confirmation to awake kohan
-                send( "{enter}" )
-				sleep 200
-				Send( "{Lbutton}" )
-            }
+AwakenKohanAmulet() { ; 
+	; checks for the 'Awaken Kohan?" prompt and confirms it, then adds kohan to company
+	if( FindColor( 407, 415, c_awakenKohanButton ) ){
+		send( "{enter}" )
+		sleep 200
+		Send( "{Lbutton}" )
+	}
 }
 
 ;-- group ████████████████████████████████████████████████████████████████████████████████████
@@ -129,7 +141,7 @@ XButton2::Delete ; should be optional or mentioned somewhere
 
 ^e:: ;settler without kohan
 {
-    if( FindColor( 338, 726, 0x6365AD ) ){ ; recruit menu button 
+    if( FindColor( 338, 726, c_recruitmentButton ) ){ ; recruit menu button 
         send( "{r}" )
         send( "{1}" ) ; use whatever key you binded short setler in save company
         send( "{enter}" )
@@ -137,9 +149,9 @@ XButton2::Delete ; should be optional or mentioned somewhere
     }
 }
 
-^r:: ;settler with kohan
+^r:: ; recruit settler with kohan, if available. will automatically awaken amulets
 {
-    if( FindColor( 338, 726, 0x6365AD ) ){ ; recruit menu button delay as been added so kohan handle the function proprely
+    if( FindColor( 338, 726, c_recruitmentButton ) ){ ; recruit menu button 
         send( "{r}" )
 		sleep 30
         send( "{1}" )
@@ -148,7 +160,7 @@ XButton2::Delete ; should be optional or mentioned somewhere
 		sleep 30
         Send( "{Lbutton}" )
 		sleep 30
-        AwakeKohanAmulet()
+		AwakenKohanAmulet()
 		sleep 30
         Send( "{Lbutton}" )
 		sleep 30
@@ -162,7 +174,7 @@ XButton2::Delete ; should be optional or mentioned somewhere
 ; "r" works as {Enter} while in recruitment window
 ~r::
 {
-    if ( FindColor( 55, 320, 0x211431 ) ){ ; recruit menu side panel 
+    if ( FindColor( 55, 320, c_objAttrBackground ) ){ ; recruit menu side panel 
         	send( "{enter}" )
     }
 }
@@ -171,7 +183,7 @@ XButton2::Delete ; should be optional or mentioned somewhere
 ; "e" removes the unit under the cursor from the company to be commissioned
 ~e::
 {
-    if ( FindColor( 55, 320, 0x211431 ) ){ ; recruit menu side panel 
+    if ( FindColor( 55, 320, c_objAttrBackground ) ){ ; recruit menu side panel 
 		send( "{Lbutton down}" )
 		Sleep( 3 ) ; delay added to make the function work proprely
 		MouseMove( 50, 0, 2, "R" )
@@ -195,7 +207,7 @@ XButton2::Delete ; should be optional or mentioned somewhere
 ; right click to add unit to company
 ~Rbutton up:: ; without the ~ or the up it mess with normal use of the Rbutton
 {
-    if ( FindColor( 55, 320, 0x211431 ) ){
+    if ( FindColor( 55, 320, c_objAttrBackground ) ){
         	send( "{Lbutton}" )
 			send( "{Lbutton}" )
     }
@@ -207,20 +219,20 @@ XButton2::Delete ; should be optional or mentioned somewhere
 ^f::
 {
 	isSettler := false
-    if( FindColor( 515, 637, 0x946531 )  ){ ; checks for build menu button and opens build menu
+    if( FindColor( 515, 637, c_companyBuildButton ) ){ ; checks for build menu button and opens build menu
         send( "{b}" )
 		Sleep( 70 )
 	}
-	if( FindColor( 515, 637, 0xBD8A00 ) ){ ; check for company menu button (ie already in build menu)
-		if( FindColor( 448, 640, 0x211431 ) ){ ; if background color (ie no button and therefore settler)
+	if( FindColor( 515, 637, c_companyMenuButton ) ){ ; check for company menu button (ie already in build menu)
+		if( FindColor( 448, 640, c_objAttrBackground ) ){ ; if background color (ie no button and therefore settler)
 			Send( "s" )
 			isSettler := true
 		} else { ; therefore engineer
 			Send( "o" )
 		}
 		Send( "{LButton}" ) ; click build cursor onto map
-		Sleep(50) ; delay to allow the dialog to open
-		if( FindColor( 554, 370, 0x424152 ) ){ ; if structure confirmation dialog opened (ie valid location)
+		Sleep(40) ; delay to allow the dialog to open
+		if( FindColor( 554, 370, c_textBoxBackground ) ){ ; if structure confirmation dialog opened (ie valid location)
 			Send( "{Enter}b" )
 			if( isSettler ){ ; always press settlers
 				Send( "q" )
@@ -235,7 +247,7 @@ XButton2::Delete ; should be optional or mentioned somewhere
 
 ~x:: ;library X
 {
-    if ( FindColor( 55, 368, 0x2961b5 ) ){ ; building menu open check library available color
+    if ( FindColor( 55, 368, c_libraryComponent ) ){ ; building menu open check library available color
         	send( "{l}" )
     }
 }
@@ -246,7 +258,7 @@ XButton2::Delete ; should be optional or mentioned somewhere
 SellAll(){ ; fast selling 
    ; while first component slot is NOT empty
 	i := 0 ; safety to avoid infinite loop
-    while( NOT FindColor( 345, 640, 0x101429 ) && (i < 20) ){ 
+    while( NOT FindColor( 345, 640, c_componentSlotEmpty ) ){ 
         MouseMove( ConvertCoords( 345, 640 )* )
 
         Send( "{s}" )
