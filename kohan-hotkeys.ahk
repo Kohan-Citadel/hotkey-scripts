@@ -27,7 +27,7 @@ Recenter(){
 	MouseMove( ConvertCoords( 500, 300 )* )
 }
 
-FindColor(x, y, color){ ; function getColor to get flash step color if available
+FindColor(x, y, color){ ; function to find a specific pixel color and compare with an input color to return true or false 
     coords := ConvertCoords( x, y )
 	x1 := coords[1] - 2
 	y1 := coords[2] - 2
@@ -70,6 +70,14 @@ PingChat( symbol, message ){
 
 ~c::Calibrate()
 
+AwakeKohanAmulet() { ; 
+if (FindColor( 406, 426, 0xB57531 ) ){ ; Detect confirmation to awake kohan
+                send( "{enter}" )
+				sleep 200
+				Send( "{Lbutton}" )
+            }
+}
+
 ;-- group ████████████████████████████████████████████████████████████████████████████████████
 !5::0
 !1::6
@@ -85,9 +93,14 @@ coords := ConvertCoords( 1012, 600 )
 x1 := coords[1], y1 := coords[2]
 coords := ConvertCoords( 8, 8 )
 x2 := coords[1], y2 := coords[2]
-Send Format("{Click {1} {2} Down}{Click {3} {4} Up}", x1, y1, x2, y2)
-sleep(2)
+MouseMove(x1, y1)
+Send ("{Lbutton down}")
+sleep(10)
+MouseMove(x2, y2)
+Send ("{Lbutton up}")
+sleep(10)
 Recenter()
+sleep(500)
 }
 
 ; click on settlements in the F1 menu
@@ -108,8 +121,8 @@ F6::SelectSettlement( 6 )
 ~NumpadAdd::F4
 ~NumpadSub::F3
 
-XButton1::Enter
-XButton2::Delete
+XButton1::Enter ; should be optional or mentioned somewhere
+XButton2::Delete ; should be optional or mentioned somewhere
 
 
 ; recruit   ████████████████████████████████████████████████████████████████████████████████████
@@ -118,7 +131,7 @@ XButton2::Delete
 {
     if( FindColor( 338, 726, 0x6365AD ) ){ ; recruit menu button 
         send( "{r}" )
-        send( "{6}" )
+        send( "{1}" ) ; use whatever key you binded short setler in save company
         send( "{enter}" )
         sleep 100
     }
@@ -126,20 +139,21 @@ XButton2::Delete
 
 ^r:: ;settler with kohan
 {
-    if( FindColor( 338, 726, 0x6365AD ) ){ ; recruit menu button 
+    if( FindColor( 338, 726, 0x6365AD ) ){ ; recruit menu button delay as been added so kohan handle the function proprely
         send( "{r}" )
-        send( "{6}" )
+		sleep 30
+        send( "{1}" )
+		sleep 30
         MouseMove( ConvertCoords( 365, 420 )* )
-
+		sleep 30
         Send( "{Lbutton}" )
-        if (FindColor( 407, 415, 0xCE7D29 ) ){ ; settler 
-                send( "{enter}" )
-                sleep 500
-                send( "{Lbutton}" ) 
-            }
+		sleep 30
+        AwakeKohanAmulet()
+		sleep 30
         Send( "{Lbutton}" )
-        send( "{enter}" )
-        sleep 500
+		sleep 30
+    	send( "{enter}" )
+        sleep 300
     }
     else
     Send( "^r" )
@@ -159,35 +173,34 @@ XButton2::Delete
 {
     if ( FindColor( 55, 320, 0x211431 ) ){ ; recruit menu side panel 
 		send( "{Lbutton down}" )
+		Sleep( 3 ) ; delay added to make the function work proprely
 		MouseMove( 50, 0, 2, "R" )
 		send( "{Lbutton up}" )
 		Sleep( 3 )
 		MouseMove( -50, 0, 2, "R" )
     }
-	/*
-    if (GetColor( ConvertCoords( 406, 733 )* ) == "525552" ){ ; building button
-	if (GetColor( ConvertCoords( 50, 177 )* ) == "424142" ){ ; blacksmith button
+	; this part is to open build menu with E and build a blacksmith if build menu is open (since this part had none explaination)
+    if (FindColor( 406, 733, 0x525552 )){ ; building button
+	if (FindColor( 50, 177, 0x424142 )){ ; blacksmith button
  		send( "{e}" )
 		sleep 500
     	}
 	else {
 		send( "{b}" )
 	}
-    }*/
+    }
 }
 
 
 ; right click to add unit to company
-~Rbutton::
+~Rbutton up:: ; without the ~ or the up it mess with normal use of the Rbutton
 {
     if ( FindColor( 55, 320, 0x211431 ) ){
         	send( "{Lbutton}" )
-            send( "{Lbutton}" )
+			send( "{Lbutton}" )
     }
     sleep 100
 }
-
-
 
 ; Build outpost/settlement at cursor    ████████████████████████████████████████████████████████████████████████████████████
 
@@ -206,6 +219,7 @@ XButton2::Delete
 			Send( "o" )
 		}
 		Send( "{LButton}" ) ; click build cursor onto map
+		Sleep 55 ; safety delay so the company isn't stuck into confirmation dialog
 		if( FindColor( 554, 370, 0x424152 ) ){ ; if structure confirmation dialog opened (ie valid location)
 			Send( "{Enter}b" )
 			if( isSettler ){ ; always press settlers
@@ -229,15 +243,19 @@ XButton2::Delete
 ; sell component     ████████████████████████████████████████████████████████████████████████████████████
 
 
-SellAll(){ ; fast selling
-   ; while fist component slot is NOT empty
-    while( NOT FindColor( 345, 640, 0x101429 ) ){ 
+SellAll(){ ; fast selling 
+   ; while first component slot is NOT empty
+	i := 0 ; safety to avoid infinite loop
+    while( NOT FindColor( 345, 640, 0x101429 ) && (i < 20) ){ 
         MouseMove( ConvertCoords( 345, 640 )* )
 
         Send( "{s}" )
         Send( "{Lbutton}" )
-        send( "{enter}" )
-        sleep 175
+		if (FindColor( 408, 405, 0x000000 ) ){ ; Detect confirmation dialog to be able to work with confirmation box option disable
+                 send( "{enter}" )
+             }
+		 i := i+1 ; safety to avoid infinite loop
+        sleep 225
     }
     return
 }
@@ -248,6 +266,16 @@ SellAll(){ ; fast selling
         sleep 100
         SellAll()
     }
+}
+
+;instant delete ████████████████████████████████████████████████████████████████████████████████████
+
+~Delete::
+{
+sleep 30
+if (FindColor( 408, 405, 0x000000 ) ){ ; Detect confirmation dialog 
+                 send( "{enter}" )
+             }
 }
 
 
@@ -280,6 +308,7 @@ Send( "^c" )
 {
 	MouseMove( ConvertCoords( 239, 594 )* )
 	Send( "{Lbutton}" )
+	sleep 5 ; delay needed to work proprely
 	MouseMove( ConvertCoords( 500, 300 )* )
 
 	sleep 100
@@ -291,9 +320,7 @@ Send( "^c" )
 !F7:: ; scene 24
 {
 Send( "{enter}" )
-Send( "scene" )
-Send( "{space}" )
-Send 24
+SendEvent ( "scene 24" ) ; changing Send into SendEvent
 Send( "{enter}" )
 Return
 }
@@ -301,7 +328,7 @@ Return
 !F8:: ; rentakohan
 {
 Send( "{enter}" )
-Send( "rentakohan" )
+SendEvent ( "rentakohan" )
 Send( "{enter}" )
 Return
 }
@@ -309,7 +336,7 @@ Return
 !F9:: ; pyrite
 {
 Send( "{enter}" )
-Send( "pyrite" )
+SendEvent ( "pyrite" )
 Send( "{enter}" )
 Return
 }
