@@ -36,15 +36,15 @@ global c_companyMenuButton := 0xBD8A00 ; sampled from (515, 637), this is the "b
 global c_libraryComponent := 0x2961b5 ; sampled from (55, 368), this is the blue of the book cover
 global c_componentSlotEmpty := 0x101429 ; background color of empty component slot
 global c_sellComponentButton := 0xF7BE5A ; sampled from (456, 729), this is top-left side of the bag of gold
-global c_awakenKohanButton := 0xCE7D29 ; sampled from (407, 415), this is the top-left corner of "awaken kohan" button
+global c_confirmationDialog := 0x000000 ; sampled from (408, 405), this is the shadow of the "rivet" on the left side of the OK button
 
-FindColor(x, y, color){ ; function to find a specific pixel color and compare with an input color to return true or false 
+FindColor(x, y, color, tolerance := 16){ ; function to find a specific pixel color and compare with an input color to return true or false 
     coords := ConvertCoords( x, y )
 	x1 := coords[1] - 2
 	y1 := coords[2] - 2
 	x2 := coords[1] + 2
 	y2 := coords[2] + 2
-	if( PixelSearch( &Px, &Py, x1, y1, x2, y2, color, 2 ) ){
+	if( PixelSearch( &Px, &Py, x1, y1, x2, y2, color, tolerance ) ){
 		return true
 	} else {
 		return false
@@ -83,7 +83,7 @@ PingChat( symbol, message ){
 
 AwakenKohanAmulet() { ; 
 	; checks for the 'Awaken Kohan?" prompt and confirms it, then adds kohan to company
-	if( FindColor( 407, 415, c_awakenKohanButton ) ){
+	if( FindColor( 409, 422, c_confirmationDialog ) ){
 		send( "{enter}" )
 		sleep 200
 		Send( "{Lbutton}" )
@@ -161,8 +161,8 @@ XButton2::Delete ; should be optional or mentioned somewhere
         Send( "{Lbutton}" )
 		sleep 30
 		AwakenKohanAmulet()
-		sleep 30
-        Send( "{Lbutton}" )
+		Sleep( 30 )
+		Send( "{Lbutton}" )
 		sleep 30
     	send( "{enter}" )
         sleep 300
@@ -256,25 +256,24 @@ XButton2::Delete ; should be optional or mentioned somewhere
 
 
 SellAll(){ ; fast selling 
-   ; while first component slot is NOT empty
 	i := 0 ; safety to avoid infinite loop
-    while( NOT FindColor( 345, 640, c_componentSlotEmpty ) ){ 
-        MouseMove( ConvertCoords( 345, 640 )* )
-
-        Send( "{s}" )
-        Send( "{Lbutton}" )
-		if (FindColor( 408, 405, 0x000000 ) ){ ; Detect confirmation dialog to be able to work with confirmation box option disable
-                 send( "{enter}" )
-             }
-		 i := i+1 ; safety to avoid infinite loop
-        sleep 225
-    }
-    return
+	; while first component slot is NOT empty and the number of interations is less than 10
+	while( NOT FindColor( 345, 640, c_componentSlotEmpty ) AND i < 10 ){ 
+		MouseMove( ConvertCoords( 345, 640 )* )
+		Send( "{s}" )
+		Send( "{Lbutton}" )
+		if (FindColor( 408, 405, c_confirmationDialog ) ){ ; Detect confirmation dialog to be able to work with confirmation box option disable
+			 send( "{enter}" )
+		}
+		i := i+1 ; safety to avoid infinite loop
+		sleep 225
+	}
+	return
 }
 
 ^s:: ;sell all
 {
-    if ( FindColor( 456, 729, 0xF7BE5A ) ){ ; checks for sell button
+    if ( FindColor( 456, 729, c_sellComponentButton ) ){ ; checks for sell button
         sleep 100
         SellAll()
     }
@@ -285,7 +284,7 @@ SellAll(){ ; fast selling
 ~Delete::
 {
 sleep 30
-if (FindColor( 408, 405, 0x000000 ) ){ ; Detect confirmation dialog 
+if (FindColor( 408, 405, c_confirmationDialog ) ){ ; Detect confirmation dialog 
                  send( "{enter}" )
              }
 }
